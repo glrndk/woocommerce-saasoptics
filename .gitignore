@@ -1,0 +1,5 @@
+/nbproject/
+node*
+vendor*
+.vscode
+.DS_Store
