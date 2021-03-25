@@ -180,6 +180,13 @@ class BoilerplateSettings {
 						'default' => '',
 					],
 					[
+						'id' => 'custom_general_wysiwyg',
+						'type' => 'wysiwyg',
+						'label' => __( 'Custom Wysiwyg Label', 'boilerplate' ),
+						'description' => __( 'Description of the wysiwyg editor', 'boilerplate' ),
+						'default' => '',
+					],
+					[
 						'id' => 'custom_general_number',
 						'type' => 'number',
 						'label' => __( 'Custom Number Label', 'boilerplate' ),
@@ -468,6 +475,16 @@ class BoilerplateSettings {
 				$default = get_option( $field['id'], $field['default'] );
 				
 				echo '<textarea name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" rows="6" class="regular-text code">' . esc_html( $default ) . '</textarea>';
+				
+				if ( ! empty( $field['description'] ) ) {
+					echo '<p class="description" id="' . esc_attr( $field['id'] ) . '-description">' . esc_html( $field['description'] ) . '</p>';
+				}
+				
+				break;
+			case 'wysiwyg':
+				$default = get_option( $field['id'] );
+
+				wp_editor( $default, esc_attr( $field['id'] ) );
 				
 				if ( ! empty( $field['description'] ) ) {
 					echo '<p class="description" id="' . esc_attr( $field['id'] ) . '-description">' . esc_html( $field['description'] ) . '</p>';
