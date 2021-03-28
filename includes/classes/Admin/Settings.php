@@ -3,304 +3,238 @@
 class BoilerplateSettings {
 	
 	public $option_prefix = 'boilerplate_';
+	public $settings = [];
 	
 	public function __construct() {
 		$this->init();
 	}
 	
 	public function init() {
-		add_action( 'admin_menu', [ $this, 'add_settings_menu' ] );
-		add_action( 'admin_menu', [ $this, 'add_settings_sub_menu' ] );
-		add_action( 'admin_menu', [ $this, 'add_options_menu' ] );
+		$this->settings = $this->get_settings();
 		
-		add_action( 'admin_init', [ $this, 'register_wp_settings' ] );
+		add_action( 'admin_init', [ $this, 'register_settings' ] );
+		add_action( 'admin_menu', [ $this, 'add_settings_menus' ] );
 		
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		add_action( 'admin_footer', [ $this, 'custom_scripts' ] );
 	}
 	
 	public function enqueue_scripts() {
+		$boilerplate_assets = plugin_dir_url( BOILERPLATE_FILE ) . 'assets';
+		
 		wp_enqueue_media();
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_style( 'wp-color-picker' );
+
+		wp_enqueue_style( 'boilerplate', $boilerplate_assets . '/css/admin.css', array(), BOILERPLATE_VERSION );
+		wp_register_script( 'boilerplate', $boilerplate_assets . '/js/admin.js', array( 'jquery' ), BOILERPLATE_VERSION, true );
+		wp_localize_script( 'boilerplate', 'meta_image',
+			array(
+				'title' => __( 'Choose or Upload Media', 'boilerplate' ),
+				'button' => __( 'Use this image', 'boilerplate' ),
+			)
+		);
+		wp_enqueue_script( 'boilerplate' );
 	}
 	
-	public function custom_scripts() {
-		echo '<script>
-		jQuery(document).ready(function($){
-			var custom_uploader;
-			
-			$(\'.remove-image\').on(\'click\', function(e) {
-				var object_id = $(this).data(\'id\');
-				var $input_object = $(\'#\'+object_id);
-				
-				$input_object.val(\'\');
-				$(\'#\'+object_id+\'-preview .image\').html(\'\');
-				$(this).hide(0);
-			});
-			
-			$(\'.upload-image\').on(\'click\', function(e) {
-				e.preventDefault();
-				
-				var object_id = $(this).data(\'id\');
-				var $input_object = $(\'#\'+object_id);
-				var $remove_button = $(this).next();
-				
-				//If the uploader object has already been created, reopen the dialog
-				if (custom_uploader) {
-					custom_uploader.open();
-					return;
-				}
-				
-				//Extend the wp.media object
-				custom_uploader = wp.media.frames.file_frame = wp.media({
-					title: \'Choose Image\',
-					button: {
-						text: \'Choose Image\'
-					},
-					multiple: false
-				});
-				
-				//When a file is selected, grab the URL and set it as the text field\'s value
-				custom_uploader.on(\'select\', function() {
-					attachment = custom_uploader.state().get(\'selection\').first().toJSON();
-					
-					var image_url = attachment.url;
-					
-					if(attachment.sizes.medium !== undefined){
-						image_url = attachment.sizes.medium.url;
-					}
-					
-					$input_object.val(attachment.id);
-					$(\'#\'+object_id+\'-preview .image\').html(\'<img src="\'+image_url+\'" alt="">\');
-					$remove_button.show(0);
-					console.log(attachment);
-					console.log(\'#\'+object_id+\'-preview .image\');
-				});
-				
-				//Open the uploader dialog
-				custom_uploader.open();
-			});
-			
-			$(\'.color-picker\').wpColorPicker();
-		});
-		</script>';
-	}
-	
-	public function register_wp_settings() {
+	public function get_settings() {
 		// Init array
 		$settings = [];
 		
-		// General settings
-		$settings['general'] = [
-			[
-				'title' => __( 'General extra', 'boilerplate' ),
-				// 'description' => [ $this, 'general_description' ], // Custom callback
-				'fields' => [
-					[
-						'id' => 'custom_general_checkbox',
-						'type' => 'checkbox',
-						'label' => __( 'Custom Checkbox Label', 'boilerplate' ),
-						'description' => __( 'Description of the checkbox field', 'boilerplate' ),
-						'default' => '1',
-					],
-					[
-						'id' => 'custom_general_text',
-						'type' => 'text',
-						'label' => __( 'Custom Text Label', 'boilerplate' ),
-						'description' => __( 'Description of the text field', 'boilerplate' ),
-						'default' => 'Default text',
-					],
-					[
-						'id' => 'custom_general_image',
-						'type' => 'image',
-						'label' => __( 'Custom Image Label', 'boilerplate' ),
-						'description' => __( 'Description of the image field', 'boilerplate' ),
-					],
-					[
-						'id' => 'custom_general_select',
-						'type' => 'select',
-						'label' => __( 'Custom Select Label', 'boilerplate' ),
-						'description' => __( 'Description of the select field', 'boilerplate' ),
-						'options' => [
-							'option' => 'Option',
+		// Custom settings
+		$settings['boilerplate-settings'] = [
+			'full_title' => 'Custom Settings Title, on the settings page',
+			'menu_title' => 'Custom Settings',
+			'tab_title' => 'Settings',
+			'groups' => [
+				[
+					'title' => __( 'Standard fields', 'boilerplate' ), // Leave title empty if you don't need it
+					// 'description' => [ $this, 'general_description' ], // Custom callback
+					'fields' => [
+						[
+							'id' => 'custom_text', // The $option_prefix will automatically be prepended to the id. So this option will become "boilerplate_custom_text" in the options table.
+							'type' => 'text',
+							'label' => __( 'Text Field', 'boilerplate' ),
+							'description' => __( 'Description of your field here. All fields can use descriptions.', 'boilerplate' ),
+							'default' => 'Pre-filled text. This is not saved until you save it',
 						],
-						'default' => '',
-					],
-					[
-						'id' => 'custom_general_radio',
-						'type' => 'radio',
-						'label' => __( 'Custom Radio Label', 'boilerplate' ),
-						'description' => __( 'Description of the radio fields', 'boilerplate' ),
-						'options' => [
-							'option1' => 'Option 1',
-							'option2' => 'Option 2',
-							'option3' => 'Option 3',
+						[
+							'id' => 'custom_number',
+							'type' => 'number',
+							'label' => __( 'Number Field', 'boilerplate' ),
+							'description' => '',
+							'min' => '0',
+							'max' => '',
+							'step' => '1',
+							'default' => '',
 						],
-						'default' => 'option2',
-					],
-					[
-						'id' => 'custom_general_multi_checkbox',
-						'type' => 'checkbox_multi',
-						'label' => __( 'Custom Multi Checkbox Label', 'boilerplate' ),
-						'description' => __( 'Description of the multi checkbox fields', 'boilerplate' ),
-						'options' => [
-							'option1' => 'Option 1',
-							'option2' => 'Option 2',
-							'option3' => 'Option 3',
-							'option4' => 'Option 4',
+						[
+							'id' => 'custom_checkbox',
+							'type' => 'checkbox',
+							'label' => __( 'Checkbox Field', 'boilerplate' ),
+							'description' => 'Description is the field label here.',
+							'default' => '1', // If not empty, this is checked by default
 						],
-						'default' => 'option2',
-					],
-					[
-						'id' => 'custom_general_multi_select',
-						'type' => 'select_multi',
-						'label' => __( 'Custom Multi Select Label', 'boilerplate' ),
-						'description' => __( 'Description of the multi select fields', 'boilerplate' ),
-						'options' => [
-							'option1' => 'Option 1',
-							'option2' => 'Option 2',
-							'option3' => 'Option 3',
-							'option4' => 'Option 4',
+						[
+							'id' => 'custom_radio',
+							'type' => 'radio',
+							'label' => __( 'Radio Field', 'boilerplate' ),
+							'description' => '',
+							'options' => [
+								'option1' => 'Option 1',
+								'option2' => 'Option 2',
+								'option3' => 'Option 3',
+							],
+							'default' => 'option2',
 						],
-						'default' => [ 'option2', 'option4' ],
-					],
-					[
-						'id' => 'custom_general_color_picker',
-						'type' => 'color',
-						'label' => __( 'Custom Color Picker Label', 'boilerplate' ),
-						'description' => __( 'Description of the color picker field', 'boilerplate' ),
-						'default' => '#303030',
-					],
-					[
-						'id' => 'custom_general_textarea',
-						'type' => 'textarea',
-						'label' => __( 'Custom Textarea Label', 'boilerplate' ),
-						'description' => __( 'Description of the textarea field', 'boilerplate' ),
-						'default' => '',
-					],
-					[
-						'id' => 'custom_general_number',
-						'type' => 'number',
-						'label' => __( 'Custom Number Label', 'boilerplate' ),
-						'description' => __( 'Description of the number field', 'boilerplate' ),
-						'min' => '3',
-						'max' => '999',
-						'step' => '.1',
-						'default' => 123,
-					],
-					[
-						'id' => 'custom_general_password',
-						'type' => 'password',
-						'label' => __( 'Custom Password Label', 'boilerplate' ),
-						'description' => __( 'Description of the password field', 'boilerplate' ),
+						[
+							'id' => 'custom_select',
+							'type' => 'select',
+							'label' => __( 'Select Field', 'boilerplate' ),
+							'description' => '',
+							'options' => [
+								'option1' => 'Option 1',
+								'option2' => 'Option 2',
+								'option3' => 'Option 3',
+							],
+							'default' => '',
+						],
+						[
+							'id' => 'custom_textarea',
+							'type' => 'textarea',
+							'label' => __( 'Textarea Field', 'boilerplate' ),
+							'description' => '',
+							'default' => '',
+						],
+						[
+							'id' => 'custom_password',
+							'type' => 'password',
+							'label' => __( 'Password Field', 'boilerplate' ),
+							'description' => '',
+						],
+						[
+							'id' => 'custom_message',
+							'type' => 'message',
+							'description' => '',
+						],
 					],
 				],
-			],
+			]
 		];
 		
-		// Writing settings
-		$settings['writing'] = [];
-		
-		// Reading settings
-		$settings['reading'] = [];
-		
-		// Discussion settings
-		$settings['discussion'] = [];
-		
-		// Permalink settings
-		$settings['permalink'] = [];
-		
-		// Custom settings
-		$settings['boilerplate-settings'] = [];
-		
 		// Custom sub settings
-		$settings['boilerplate-sub-settings'] = [];
+		$settings['boilerplate-advanced-settings'] = [
+			'full_title' => 'Advanced settings fields',
+			'menu_title' => 'Advanced',
+			'tab_title' => 'Advanced',
+			'groups' => [
+				[
+					'title' => __( 'Advanced fields', 'boilerplate' ),
+					'fields' => [
+						[
+							'id' => 'custom_image',
+							'type' => 'image',
+							'label' => __( 'Image Field', 'boilerplate' ),
+							'description' => __( 'Image uploads through the media library.', 'boilerplate' ),
+						],
+						[
+							'id' => 'custom_general_multi_checkbox',
+							'type' => 'checkbox_multi',
+							'label' => __( 'Multi Checkbox Field', 'boilerplate' ),
+							'description' => __( 'Default value can be either a single option, or an array of options', 'boilerplate' ),
+							'options' => [
+								'option1' => 'Option 1',
+								'option2' => 'Option 2',
+								'option3' => 'Option 3',
+								'option4' => 'Option 4',
+							],
+							'default' => 'option2',
+						],
+						[
+							'id' => 'custom_general_multi_select',
+							'type' => 'select_multi',
+							'label' => __( 'Multi Select Field', 'boilerplate' ),
+							'description' => '',
+							'options' => [
+								'option1' => 'Option 1',
+								'option2' => 'Option 2',
+								'option3' => 'Option 3',
+								'option4' => 'Option 4',
+							],
+							'default' => [ 'option2', 'option4' ],
+						],
+						[
+							'id' => 'custom_general_color_picker',
+							'type' => 'color',
+							'label' => __( 'Color Picker Field', 'boilerplate' ),
+							'description' => '',
+							'default' => '#303030',
+						],
+						[
+							'id' => 'custom_general_wysiwyg',
+							'type' => 'wysiwyg',
+							'label' => __( 'Wysiwyg Field', 'boilerplate' ),
+							'description' => __( 'This is the full featured WordPress editor you know.', 'boilerplate' ),
+							'default' => '',
+						],
+					],
+				],
+			]
+		];
 		
-		// Custom options
-		$settings['boilerplate-options'] = [];
-		
-		$this->register_settings_fields( $settings );
+		return $settings;
 	}
 	
-	public function add_settings_menu() {
-		add_menu_page( 'Plugin Settings', 'Plugin Settings', 'manage_options', 'boilerplate-settings', [ $this, 'render_custom_settings_page' ], 'dashicons-admin-generic', 90 );
+	public function register_settings() {
+		$this->register_settings_fields( $this->settings );
 	}
 	
-	public function add_settings_sub_menu() {
-		add_submenu_page( 'boilerplate-settings', 'Sub Settings', 'Sub Settings', 'manage_options', 'boilerplate-sub-settings', [ $this, 'render_custom_sub_settings_page' ] );
+	public function add_settings_menus() {
+		$counter = 1;
+		$main_settings = '';
+		
+		foreach ( $this->settings as $key => $data ) {
+			$full_title = $data['full_title'];
+			$menu_title = $data['menu_title'];
+			
+			if ( $counter === 1 ) {
+				$main_settings = $key;
+				add_menu_page( $full_title, $menu_title, 'manage_options', $key, [ $this, 'render_boilerplate_settings_page' ], 'dashicons-admin-generic', 90 );
+			} else {
+				add_submenu_page( $main_settings, $full_title, $menu_title, 'manage_options', $key, [ $this, 'render_boilerplate_settings_page' ] );
+			}
+			
+			++$counter;
+		}
+		
 	}
 	
-	public function add_options_menu() {
-		add_options_page( 'Custom Settings', 'Custom Settings', 'manage_options', 'boilerplate-custom-options', [ $this, 'render_custom_options_page' ] );
+	public function render_boilerplate_settings_page() {
+		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
+		
+		if ( ! empty( $this->settings[ $current_page ] ) ) {
+			$settings = $this->settings[ $current_page ];
+			
+			echo '<h1>' . $settings['full_title'] . '</h1>
+			<form method="post" action="options.php" novalidate="novalidate">';
+
+			$this->add_tabs();
+
+			settings_fields( $current_page );
+			do_settings_sections( $current_page );
+			submit_button();
+
+			echo '</form>';
+		}
 	}
 	
-	public function render_custom_settings_page() {
-		echo '<h1>' . __( 'Boilerplate Settings Page', 'boilerplate' ) . '</h1>
-		<form method="post" action="options.php" novalidate="novalidate">';
-		
-		$this->add_tabs( [
-			[
-				'url' => '?page=boilerplate-settings',
-				'title' => 'Settings',
-				'active' => true,
-			],
-			[
-				'url' => '?page=boilerplate-sub-settings',
-				'title' => 'Sub Settings',
-				'active' => false,
-			],
-		] );
-		
-		settings_fields( 'boilerplate-settings' );
-		do_settings_sections( 'boilerplate-settings' );
-		// submit_button();
-		
-		echo '</form>';
-	}
-	
-	public function render_custom_sub_settings_page() {
-		echo '<h1>' . __( 'Boilerplate Sub Settings Page', 'boilerplate' ) . '</h1>
-		<form method="post" action="options.php" novalidate="novalidate">';
-		
-		$this->add_tabs( [
-			[
-				'url' => '?page=boilerplate-settings',
-				'title' => 'Settings',
-				'active' => false,
-			],
-			[
-				'url' => '?page=boilerplate-sub-settings',
-				'title' => 'Sub Settings',
-				'active' => true,
-			],
-		] );
-		
-		settings_fields( 'boilerplate-sub-settings' );
-		do_settings_sections( 'boilerplate-sub-settings' );
-		// submit_button();
-		
-		echo '</form>';
-	}
-	
-	public function render_custom_options_page() {
-		echo '<h1>' . __( 'Boilerplate Options Page', 'boilerplate' ) . '</h1>
-		<form method="post" action="options.php" novalidate="novalidate">';
-		
-		settings_fields( 'boilerplate-options' );
-		do_settings_sections( 'boilerplate-options' );
-		// submit_button();
-		
-		echo '</form>';
-	}
-	
-	public function add_tabs( $links ) {
+	public function add_tabs() {
 		echo'<h2 class="nav-tab-wrapper">' . "\n";
 
-		foreach ( $links as $link ) {
-			$url = $link['url'];
-			$title = $link['title'];
-			$active = $link['active'] ?? null;
+		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
+		foreach ( $this->settings as $key => $section ) {
+			$url = admin_url( '/admin.php?page=' . $key );
+			$title = $section['tab_title'];
+			$active = $current_page == $key ? true : false;
 
 			$class = 'nav-tab';
 			if ( ! empty( $active ) ) {
@@ -314,8 +248,8 @@ class BoilerplateSettings {
 	}
 	
 	public function register_settings_fields( $settings ) {
-		foreach ( $settings as $location => $groups ) {
-			foreach ( $groups as $group ) {
+		foreach ( $settings as $location => $data ) {
+			foreach ( $data['groups'] as $key => $group ) {
 				$group_title = $group['title'];
 				$group_id = sanitize_title( $group_title );
 				$description_callback = $group['description'] ?? '__return_empty_string';
@@ -336,13 +270,13 @@ class BoilerplateSettings {
 	public function render_settings_field( $field ) {
 		switch ( $field['type'] ) {
 			case 'checkbox':
+				echo '<fieldset>';
+				
 				$default = get_option( $field['id'], $field['default'] );
 				
-				echo '<input name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" type="' . esc_attr( $field['type'] ) . '" value="1"' . ( ! empty( $default ) ? ' checked' : '' ) . '>';
+				echo '<label for="' . esc_attr( $field['id'] ) . '"><input name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" type="checkbox" value="' . $key . '"' . ( ! empty( $default ) ? ' checked' : '' ) . '> ' . esc_html( $field['description'] ) . '</label>';
 				
-				if ( ! empty( $field['description'] ) ) {
-					echo ' <label for="' . esc_attr( $field['id'] ) . '">' . esc_html( $field['description'] ) . '</label>';
-				}
+				echo '</fieldset>';
 				
 				break;
 			case 'image':
@@ -416,7 +350,7 @@ class BoilerplateSettings {
 							echo '<br>';
 						}
 						
-						echo '<label><input name="' . esc_attr( $field['id'] ) . '" id="' . $field['id'] . '" type="' . esc_attr( $field['type'] ) . '" value="' . esc_attr( $key ) . '"' . ( $key === $default ? ' checked' : '' ) . '> ' . esc_html( $value ) . '</label>';
+						echo '<label for="' . esc_attr( $field['id'] ) . '-' . $i . '"><input name="' . esc_attr( $field['id'] ) . '" id="' . $field['id'] . '-' . $i . '" type="' . esc_attr( $field['type'] ) . '" value="' . esc_attr( $key ) . '"' . ( $key === $default ? ' checked' : '' ) . '> ' . esc_html( $value ) . '</label>';
 					}
 				}
 				
@@ -443,7 +377,7 @@ class BoilerplateSettings {
 							echo '<br>';
 						}
 						
-						echo '<label><input name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" type="checkbox" value="' . $key . '"' . ( in_array( $key, $default ) ? ' checked' : '' ) . '> ' . esc_html( $value ) . '</label>';
+						echo '<label for="' . esc_attr( $field['id'] ) . '-' . $i . '"><input name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '-' . $i . '" type="checkbox" value="' . $key . '"' . ( in_array( $key, $default ) ? ' checked' : '' ) . '> ' . esc_html( $value ) . '</label>';
 					}
 				}
 				
@@ -495,6 +429,22 @@ class BoilerplateSettings {
 				
 				if ( ! empty( $field['description'] ) ) {
 					echo '<p class="description" id="' . esc_attr( $field['id'] ) . '-description">' . esc_html( $field['description'] ) . '</p>';
+				}
+				
+				break;
+			case 'wysiwyg':
+				$default = get_option( $field['id'] );
+
+				wp_editor( $default, esc_attr( $field['id'] ) );
+				
+				if ( ! empty( $field['description'] ) ) {
+					echo '<p class="description" id="' . esc_attr( $field['id'] ) . '-description">' . esc_html( $field['description'] ) . '</p>';
+				}
+				
+				break;
+			case 'message':
+				if ( ! empty( $field['description'] ) ) {
+					echo '<div class="description">' . esc_html( $field['description'] ) . '</div>';
 				}
 				
 				break;
