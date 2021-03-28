@@ -299,7 +299,7 @@ class BoilerplateSettings {
 				
 				break;
 			case 'select':
-				echo '<select name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '">';
+				echo '<select name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" class="regular-text">';
 				
 				if ( ! empty( $field['options'] ) ) {
 					$default = get_option( $field['id'], $field['default'] );
@@ -317,7 +317,7 @@ class BoilerplateSettings {
 				
 				break;
 			case 'select_multi':
-				echo '<select name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" multiple>';
+				echo '<select name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" class="regular-text" multiple>';
 				
 				if ( ! empty( $field['options'] ) ) {
 					$default = get_option( $field['id'], $field['default'] );
