@@ -1,0 +1,26 @@
+.form-table{
+	th{
+		padding: 15px 10px 15px 0;
+		&:empty{
+			width: 0;
+			padding: 0;
+		}
+	}
+	td{
+		padding: 10px;
+	}
+	p.description{
+		font-size: 0.8rem;
+		margin-top: 0;
+		font-style: italic;
+	}
+	input{
+		&.upload-image,
+		&.remove-image{
+			margin-bottom: 2px;
+		}
+	}
+	.wp-picker-container .wp-color-result.button{
+		margin-bottom: 2px;
+	}
+}

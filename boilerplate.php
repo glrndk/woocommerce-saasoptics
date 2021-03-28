@@ -20,6 +20,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+define( 'BOILERPLATE_FILE', __FILE__ );
+define( 'BOILERPLATE_VERSION', '1.0.0' );
+
 // Load language early
 load_plugin_textdomain( 'boilerplate', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
 
