@@ -43,13 +43,13 @@ jQuery( document ).ready( function( $ ) {
 			$input_object.val( attachment.id );
 			$( '#'+object_id+'-preview .image' ).html( '<img src="'+image_url+'" alt="">' );
 			$remove_button.show( 0 );
-			console.log( attachment );
-			console.log( '#'+object_id+'-preview .image' );
 		} );
 
 		custom_uploader.open();
 	} );
 
 	$( '.color-picker' ).wpColorPicker();
+	
+	$( 'select.styled-select' ).select2();
 	
 } );

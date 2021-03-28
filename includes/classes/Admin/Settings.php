@@ -20,12 +20,14 @@ class BoilerplateSettings {
 	
 	public function enqueue_scripts() {
 		$boilerplate_assets = plugin_dir_url( BOILERPLATE_FILE ) . 'assets';
+		$cdnjs_assets = 'https://cdnjs.cloudflare.com/ajax/libs';
 		
 		wp_enqueue_media();
-		wp_enqueue_script( 'wp-color-picker' );
+		
 		wp_enqueue_style( 'wp-color-picker' );
-
 		wp_enqueue_style( 'boilerplate', $boilerplate_assets . '/css/admin.css', array(), BOILERPLATE_VERSION );
+		wp_enqueue_style( 'select2', $cdnjs_assets . '/select2/4.0.13/css/select2.min.css', false, BOILERPLATE_VERSION );
+		
 		wp_register_script( 'boilerplate', $boilerplate_assets . '/js/admin.js', array( 'jquery' ), BOILERPLATE_VERSION, true );
 		wp_localize_script( 'boilerplate', 'meta_image',
 			array(
@@ -33,6 +35,9 @@ class BoilerplateSettings {
 				'button' => __( 'Use this image', 'boilerplate' ),
 			)
 		);
+		
+		wp_enqueue_script( 'select2', $cdnjs_assets . '/select2/4.0.13/js/select2.min.js', array( 'jquery' ), BOILERPLATE_VERSION, true );
+		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_script( 'boilerplate' );
 	}
 	
@@ -299,7 +304,7 @@ class BoilerplateSettings {
 				
 				break;
 			case 'select':
-				echo '<select name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" class="regular-text">';
+				echo '<select name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" class="regular-text styled-select">';
 				
 				if ( ! empty( $field['options'] ) ) {
 					$default = get_option( $field['id'], $field['default'] );
@@ -317,7 +322,7 @@ class BoilerplateSettings {
 				
 				break;
 			case 'select_multi':
-				echo '<select name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" class="regular-text" multiple>';
+				echo '<select name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" class="regular-text styled-select" multiple>';
 				
 				if ( ! empty( $field['options'] ) ) {
 					$default = get_option( $field['id'], $field['default'] );
