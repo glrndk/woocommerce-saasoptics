@@ -274,7 +274,7 @@ class BoilerplateSettings {
 				
 				$default = get_option( $field['id'], $field['default'] );
 				
-				echo '<label for="' . esc_attr( $field['id'] ) . '"><input name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" type="checkbox" value="' . $key . '"' . ( ! empty( $default ) ? ' checked' : '' ) . '> ' . esc_html( $field['description'] ) . '</label>';
+				echo '<label for="' . esc_attr( $field['id'] ) . '"><input name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" type="checkbox" value="1"' . ( ! empty( $default ) ? ' checked' : '' ) . '> ' . esc_html( $field['description'] ) . '</label>';
 				
 				echo '</fieldset>';
 				
