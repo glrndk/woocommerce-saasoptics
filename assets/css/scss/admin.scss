@@ -23,4 +23,14 @@
 	.wp-picker-container .wp-color-result.button{
 		margin-bottom: 2px;
 	}
+	.select2-container .select2-selection--single{
+		height: 30px;
+	}
+	label{
+		&.text-group{
+			display: table;
+			line-height: 1;
+			margin: 0.8em 0 .25em !important;
+		}
+	}
 }

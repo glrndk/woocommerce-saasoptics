@@ -20,12 +20,14 @@ class BoilerplateSettings {
 	
 	public function enqueue_scripts() {
 		$boilerplate_assets = plugin_dir_url( BOILERPLATE_FILE ) . 'assets';
+		$cdnjs_assets = 'https://cdnjs.cloudflare.com/ajax/libs';
 		
 		wp_enqueue_media();
-		wp_enqueue_script( 'wp-color-picker' );
+		
 		wp_enqueue_style( 'wp-color-picker' );
-
 		wp_enqueue_style( 'boilerplate', $boilerplate_assets . '/css/admin.css', array(), BOILERPLATE_VERSION );
+		wp_enqueue_style( 'select2', $cdnjs_assets . '/select2/4.0.13/css/select2.min.css', false, BOILERPLATE_VERSION );
+		
 		wp_register_script( 'boilerplate', $boilerplate_assets . '/js/admin.js', array( 'jquery' ), BOILERPLATE_VERSION, true );
 		wp_localize_script( 'boilerplate', 'meta_image',
 			array(
@@ -33,6 +35,9 @@ class BoilerplateSettings {
 				'button' => __( 'Use this image', 'boilerplate' ),
 			)
 		);
+		
+		wp_enqueue_script( 'select2', $cdnjs_assets . '/select2/4.0.13/js/select2.min.js', array( 'jquery' ), BOILERPLATE_VERSION, true );
+		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_script( 'boilerplate' );
 	}
 	
@@ -137,7 +142,7 @@ class BoilerplateSettings {
 							'description' => __( 'Image uploads through the media library.', 'boilerplate' ),
 						],
 						[
-							'id' => 'custom_general_multi_checkbox',
+							'id' => 'custom_multi_checkbox',
 							'type' => 'checkbox_multi',
 							'label' => __( 'Multi Checkbox Field', 'boilerplate' ),
 							'description' => __( 'Default value can be either a single option, or an array of options', 'boilerplate' ),
@@ -150,7 +155,7 @@ class BoilerplateSettings {
 							'default' => 'option2',
 						],
 						[
-							'id' => 'custom_general_multi_select',
+							'id' => 'custom_multi_select',
 							'type' => 'select_multi',
 							'label' => __( 'Multi Select Field', 'boilerplate' ),
 							'description' => '',
@@ -163,11 +168,22 @@ class BoilerplateSettings {
 							'default' => [ 'option2', 'option4' ],
 						],
 						[
-							'id' => 'custom_general_color_picker',
+							'id' => 'custom_color_picker',
 							'type' => 'color',
 							'label' => __( 'Color Picker Field', 'boilerplate' ),
 							'description' => '',
 							'default' => '#303030',
+						],
+						[
+							'id' => 'custom_text_group',
+							'type' => 'text_group',
+							'label' => __( 'Text Group', 'zencode' ),
+							'description' => '',
+							'options' => [
+								'field_1' => 'Field 1',
+								'field_2' => 'Field 2',
+								'field_3' => 'Field 3',
+							],
 						],
 						[
 							'id' => 'custom_general_wysiwyg',
@@ -214,16 +230,18 @@ class BoilerplateSettings {
 		if ( ! empty( $this->settings[ $current_page ] ) ) {
 			$settings = $this->settings[ $current_page ];
 			
-			echo '<h1>' . $settings['full_title'] . '</h1>
-			<form method="post" action="options.php" novalidate="novalidate">';
+			echo '<div class="wrap">
+				<h1>' . $settings['full_title'] . '</h1>
+				<form method="post" action="options.php" novalidate="novalidate">';
 
-			$this->add_tabs();
+				$this->add_tabs();
 
-			settings_fields( $current_page );
-			do_settings_sections( $current_page );
-			submit_button();
+				settings_fields( $current_page );
+				do_settings_sections( $current_page );
+				submit_button();
 
-			echo '</form>';
+				echo '</form>
+			</div>';
 		}
 	}
 	
@@ -299,7 +317,7 @@ class BoilerplateSettings {
 				
 				break;
 			case 'select':
-				echo '<select name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '">';
+				echo '<select name="' . esc_attr( $field['id'] ) . '" id="' . esc_attr( $field['id'] ) . '" class="regular-text styled-select">';
 				
 				if ( ! empty( $field['options'] ) ) {
 					$default = get_option( $field['id'], $field['default'] );
@@ -317,7 +335,7 @@ class BoilerplateSettings {
 				
 				break;
 			case 'select_multi':
-				echo '<select name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" multiple>';
+				echo '<select name="' . esc_attr( $field['id'] ) . '[]" id="' . esc_attr( $field['id'] ) . '" class="regular-text styled-select" multiple>';
 				
 				if ( ! empty( $field['options'] ) ) {
 					$default = get_option( $field['id'], $field['default'] );
@@ -446,6 +464,32 @@ class BoilerplateSettings {
 				if ( ! empty( $field['description'] ) ) {
 					echo '<div class="description">' . esc_html( $field['description'] ) . '</div>';
 				}
+				
+				break;
+			case 'text_group':
+				echo '<fieldset>';
+				
+				if ( ! empty( $field['options'] ) ) {
+					$saved = get_option( $field['id'], [] );
+					
+					$i = 0;
+					foreach ( $field['options'] as $key => $value ) {
+						$default = $saved[ $key ] ?? '';
+						
+						if ( ++$i > 1 ) {
+							echo '<br>';
+						}
+						
+						echo '<label for="' . esc_attr( $field['id'] ) . '-' . $i . '" class="text-group">' . esc_html( $value ) . '</label>';
+						echo '<input name="' . esc_attr( $field['id'] ) . '[' . $key . ']" id="' . esc_attr( $field['id'] ) . '-' . $i . '" type="text" value="' . esc_attr( $default ) . '" class="regular-text">';
+					}
+				}
+				
+				if ( ! empty( $field['description'] ) ) {
+					echo '<p class="description" id="' . esc_attr( $field['id'] ) . '-description">' . esc_html( $field['description'] ) . '</p>';
+				}
+				
+				echo '</fieldset>';
 				
 				break;
 			default:
