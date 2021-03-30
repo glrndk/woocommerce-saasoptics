@@ -142,7 +142,7 @@ class BoilerplateSettings {
 							'description' => __( 'Image uploads through the media library.', 'boilerplate' ),
 						],
 						[
-							'id' => 'custom_general_multi_checkbox',
+							'id' => 'custom_multi_checkbox',
 							'type' => 'checkbox_multi',
 							'label' => __( 'Multi Checkbox Field', 'boilerplate' ),
 							'description' => __( 'Default value can be either a single option, or an array of options', 'boilerplate' ),
@@ -155,7 +155,7 @@ class BoilerplateSettings {
 							'default' => 'option2',
 						],
 						[
-							'id' => 'custom_general_multi_select',
+							'id' => 'custom_multi_select',
 							'type' => 'select_multi',
 							'label' => __( 'Multi Select Field', 'boilerplate' ),
 							'description' => '',
@@ -168,11 +168,22 @@ class BoilerplateSettings {
 							'default' => [ 'option2', 'option4' ],
 						],
 						[
-							'id' => 'custom_general_color_picker',
+							'id' => 'custom_color_picker',
 							'type' => 'color',
 							'label' => __( 'Color Picker Field', 'boilerplate' ),
 							'description' => '',
 							'default' => '#303030',
+						],
+						[
+							'id' => 'custom_text_group',
+							'type' => 'text_group',
+							'label' => __( 'Text Group', 'zencode' ),
+							'description' => '',
+							'options' => [
+								'field_1' => 'Field 1',
+								'field_2' => 'Field 2',
+								'field_3' => 'Field 3',
+							],
 						],
 						[
 							'id' => 'custom_general_wysiwyg',
@@ -453,6 +464,32 @@ class BoilerplateSettings {
 				if ( ! empty( $field['description'] ) ) {
 					echo '<div class="description">' . esc_html( $field['description'] ) . '</div>';
 				}
+				
+				break;
+			case 'text_group':
+				echo '<fieldset>';
+				
+				if ( ! empty( $field['options'] ) ) {
+					$saved = get_option( $field['id'], [] );
+					
+					$i = 0;
+					foreach ( $field['options'] as $key => $value ) {
+						$default = $saved[ $key ] ?? '';
+						
+						if ( ++$i > 1 ) {
+							echo '<br>';
+						}
+						
+						echo '<label for="' . esc_attr( $field['id'] ) . '-' . $i . '" class="text-group">' . esc_html( $value ) . '</label>';
+						echo '<input name="' . esc_attr( $field['id'] ) . '[' . $key . ']" id="' . esc_attr( $field['id'] ) . '-' . $i . '" type="text" value="' . esc_attr( $default ) . '" class="regular-text">';
+					}
+				}
+				
+				if ( ! empty( $field['description'] ) ) {
+					echo '<p class="description" id="' . esc_attr( $field['id'] ) . '-description">' . esc_html( $field['description'] ) . '</p>';
+				}
+				
+				echo '</fieldset>';
 				
 				break;
 			default:
