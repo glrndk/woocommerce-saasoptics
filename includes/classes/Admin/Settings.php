@@ -219,16 +219,18 @@ class BoilerplateSettings {
 		if ( ! empty( $this->settings[ $current_page ] ) ) {
 			$settings = $this->settings[ $current_page ];
 			
-			echo '<h1>' . $settings['full_title'] . '</h1>
-			<form method="post" action="options.php" novalidate="novalidate">';
+			echo '<div class="wrap">
+				<h1>' . $settings['full_title'] . '</h1>
+				<form method="post" action="options.php" novalidate="novalidate">';
 
-			$this->add_tabs();
+				$this->add_tabs();
 
-			settings_fields( $current_page );
-			do_settings_sections( $current_page );
-			submit_button();
+				settings_fields( $current_page );
+				do_settings_sections( $current_page );
+				submit_button();
 
-			echo '</form>';
+				echo '</form>
+			</div>';
 		}
 	}
 	

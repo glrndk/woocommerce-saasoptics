@@ -26,4 +26,11 @@
 	.select2-container .select2-selection--single{
 		height: 30px;
 	}
+	label{
+		&.multi-text{
+			display: table;
+			line-height: 1;
+			margin: 0.8em 0 .25em !important;
+		}
+	}
 }
