@@ -276,7 +276,12 @@ class BoilerplateSettings {
 				add_settings_section( $group_id, $group_title, $description_callback, $location );
 				
 				foreach ( $fields as $field ) {
-					$field['id'] = $this->option_prefix . $field['id'];
+					if ( empty( $field['id'] ) ) {
+						$id = md5( ( ! empty( $field['description'] ) ? $field['description'] : $field['type'] ) . microtime( true ) );
+						$field['id'] = $this->option_prefix . $id;
+					} else {
+						$field['id'] = $this->option_prefix . $field['id'];
+					}
 					
 					register_setting( $location, $field['id'] );
 					add_settings_field( $field['id'], $field['label'], [ $this, 'render_settings_field' ], $location, $group_id, $field );
