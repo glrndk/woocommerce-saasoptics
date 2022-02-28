@@ -13,7 +13,7 @@
  * Domain Path: /lang/
  *
  * @package WordPress
- * @author Bo Gunnarson
+ * @author GoLearn ApS
  * @since 1.0.0
  */
 
