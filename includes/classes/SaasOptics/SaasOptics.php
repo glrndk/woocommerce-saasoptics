@@ -11,7 +11,6 @@ class SaasOptics
     {
         switch ($woo_product_id) {
             case 121280:
-            case 127985: // Remove after debugging
                 return  get_option('gl_saas_optics_yearly');
                 break;
             case 109663:
@@ -85,6 +84,12 @@ class SaasOptics
 
             $response = json_decode($response['body']);
 
+            if (empty($response->id)) {
+                $this->logAndMail($response);
+                wp_mail('it@golearn.dk', 'Problemer med at oprette en bruger i SaasOptics', 'Der har været et problem med at oprette en bruger i SaasOptics på følgende WP ID:' . $user_id . ' klokken ' . current_time('d-m-Y') . '\r\n Response:' . json_encode($response));
+                exit;
+            }
+
             $customer_id = $response->id;
             update_user_meta($user_id, 'gl_so_customer_id', $customer_id);
 
@@ -97,7 +102,9 @@ class SaasOptics
             // Create the contract object in SaasOptics related to the customer for invoicing
             $response = $client->post('contracts', ['body' => json_encode($contract)]);
             if ($response['response']['message'] !== 'Created') {
-                return new Exception($response['response']['message'], $response['response']['code']);
+                $this->logAndMail($response);
+                wp_mail('it@golearn.dk', 'Problemer med at oprette en kontrakt i SaasOptics', 'Der har været et problem med at oprette en kontrakt i SaasOptics på følgende bruger:' . $customer_id . ' klokken ' . current_time('d-m-Y') . '\r\n Response:' . json_encode($response));
+                exit;
             }
             $response = json_decode($response['body']);
             $user_so_contract_id = $response->id;
@@ -123,10 +130,30 @@ class SaasOptics
         $response = $client->post('invoices', ['body' => json_encode($invoice)]);
 
         if ($response['response']['message'] !== 'Created') {
-            return new Exception($response['response']['message'], $response['response']['code']);
+            get_user_meta($user_id, 'gl_so_customer_id', true);
+            $this->logAndMail($response);
+            wp_mail('it@golearn.dk', 'Problemer med at oprette en faktura i SaasOptics', 'Der har været et problem med at oprette en faktura i SaasOptics på følgende bruger:' . $customer_id . ' klokken ' . current_time('d-m-Y') . '\r\n Response:' . json_encode($response));
+            exit;
         }
 
         return true;
+    }
+
+    protected function logAndMail($entry, $mode = 'a', $file = 'gl_woocommerce_saasoptics')
+    {
+        // Get WordPress uploads directory.
+        $upload_dir = wp_upload_dir();
+        $upload_dir = $upload_dir['basedir'];
+        // If the entry is array, json_encode.
+        if (is_array($entry)) {
+            $entry = json_encode($entry);
+        }
+        // Write the log file.
+        $file  = $upload_dir . '/' . $file . '.log';
+        $file  = fopen($file, $mode);
+        $bytes = fwrite($file, current_time('d-m-Y') . "::" . $entry . "\n");
+        fclose($file);
+        return $bytes;
     }
 
     protected function debug($debug)

@@ -42,10 +42,6 @@ function my_plugin_action_links($links)
 }
 
 // Load classes
-new BoilerplatePostTypes();
-new BoilerplateTaxonomies();
-new BoilerplateMetaBoxes();
 new BoilerplateSettings();
-new BoilerplateBlocks();
 $saas_optics = new SaasOptics();
 $saas_optics->init();
